@@ -1,8 +1,0 @@
-# Token do bot do Discord
-DISCORD_BOT_TOKEN=COLE_SEU_TOKEN_AQUI
-
-# ID do servidor de desenvolvimento (opcional)
-DEV_GUILD_ID=COLE_O_ID_DO_SEU_SERVIDOR_AQUI
-
-# Ambiente de execução
-NODE_ENV=development 
