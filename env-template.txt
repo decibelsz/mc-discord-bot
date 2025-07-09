@@ -38,6 +38,18 @@ RCON_PORT=25575
 RCON_PASSWORD=SUA_SENHA_RCON_AQUI
 
 # ========================
+# ⏰ CONFIGURAÇÕES DE ATUALIZAÇÃO
+# ========================
+
+# Intervalo de atualização automática do status (em segundos)
+# Padrão: 30 segundos
+UPDATE_INTERVAL=30
+
+# Versão do servidor Minecraft
+# Exemplo: 1.21.7
+SERVER_VERSION=1.21.7
+
+# ========================
 # 📝 INSTRUÇÕES DE SETUP
 # ========================
 

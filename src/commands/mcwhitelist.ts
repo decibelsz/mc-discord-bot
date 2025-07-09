@@ -39,8 +39,6 @@ export class WhitelistPanel {
       const listResult = await rcon.send('list');
       await rcon.end();
       
-      this.logger.debug(`Resultado do comando list: "${listResult}"`);
-      
       let players = 0;
       let maxPlayers = 0;
       
@@ -63,7 +61,6 @@ export class WhitelistPanel {
       }
       
       if (players > 0 || maxPlayers > 0) {
-        this.logger.debug(`Jogadores detectados: ${players}/${maxPlayers}`);
         return { online: true, players, maxPlayers };
       }
       
@@ -71,15 +68,12 @@ export class WhitelistPanel {
         const playerNames = listResult.split(':')[1]?.trim();
         if (playerNames && playerNames !== '') {
           const playerCount = playerNames.split(',').length;
-          this.logger.debug(`Jogadores estimados por nomes: ${playerCount}`);
           return { online: true, players: playerCount, maxPlayers: 20 };
         }
       }
       
-      this.logger.debug(`Servidor online, mas não foi possível detectar jogadores`);
       return { online: true, players: 0, maxPlayers: 20 };
     } catch (error) {
-      this.logger.debug(`Servidor offline: ${error.message}`);
       return { online: false };
     }
   }
@@ -161,7 +155,7 @@ export class WhitelistPanel {
     const imagePath = join(process.cwd(), "src/assets/logo.gif");
     const attachment = new AttachmentBuilder(imagePath);
 
-    await interaction.channel.send({ 
+    const message = await interaction.channel.send({ 
       components: components,
       flags: MessageFlags.IsComponentsV2
     });
@@ -169,5 +163,94 @@ export class WhitelistPanel {
     await interaction.editReply({ 
       content: "✅ Painel de whitelist enviado!"
     });
+
+    this.startAutoUpdate(message);
+  }
+
+  private async startAutoUpdate(message: any) {
+    const updateInterval = parseInt(process.env.UPDATE_INTERVAL || '30') * 1000;
+    
+    const updateStatus = async () => {
+      try {
+        const serverStatus = await this.checkServerStatus();
+        
+        let statusButton: ButtonBuilder;
+        if (serverStatus.online) {
+          statusButton = new ButtonBuilder()
+            .setStyle(ButtonStyle.Success)
+            .setLabel(`players online: ${serverStatus.players}/${serverStatus.maxPlayers}`)
+            .setCustomId("server-status-button")
+            .setDisabled(true);
+        } else {
+          statusButton = new ButtonBuilder()
+            .setStyle(ButtonStyle.Danger)
+            .setLabel("Servidor Offline")
+            .setCustomId("server-status-button")
+            .setDisabled(true);
+        }
+
+        const serverVersion = process.env.SERVER_VERSION || 'Desconhecida';
+
+        const updatedComponents = [
+          new ContainerBuilder()
+            .setAccentColor(16711680)
+            .addTextDisplayComponents(
+              new TextDisplayBuilder()
+                .setContent(`**-# VERSÃO ${serverVersion}**`),
+            )
+            .addSeparatorComponents(
+              new SeparatorBuilder()
+                .setSpacing(SeparatorSpacingSize.Small)
+                .setDivider(true),
+            )
+            .addTextDisplayComponents(
+              new TextDisplayBuilder()
+                .setContent("-# Painel de whitelist do servidor."),
+            )
+            .addSeparatorComponents(
+              new SeparatorBuilder()
+                .setSpacing(SeparatorSpacingSize.Small)
+                .setDivider(true),
+            )
+            .addTextDisplayComponents(
+              new TextDisplayBuilder()
+                .setContent("-# **Clique nos botões abaixo para acessar o servidor:**"),
+            )
+            .addActionRowComponents(
+              new ActionRowBuilder<MessageActionRowComponentBuilder>()
+                .addComponents(
+                  new ButtonBuilder()
+                    .setStyle(ButtonStyle.Secondary)
+                    .setLabel("ip do servidor")
+                    .setCustomId("9cffd086283f4151a968f96d236175ad"),
+                  new ButtonBuilder()
+                    .setStyle(ButtonStyle.Secondary)
+                    .setLabel("whitelist")
+                    .setCustomId("1f8d34948b7c4089d6d8803a384b4bb9"),
+                  new ButtonBuilder()
+                    .setStyle(ButtonStyle.Secondary)
+                    .setLabel("comandos")
+                    .setCustomId("comandos-panel-button"),
+                ),
+            )
+            .addActionRowComponents(
+              new ActionRowBuilder<MessageActionRowComponentBuilder>()
+                .addComponents(statusButton),
+            ),
+        ];
+
+        await message.edit({
+          components: updatedComponents,
+          flags: MessageFlags.IsComponentsV2
+        });
+
+        this.logger.debug(`Status atualizado automaticamente: ${serverStatus.players}/${serverStatus.maxPlayers} jogadores`);
+      } catch (error) {
+        this.logger.error('Erro ao atualizar status automaticamente:', error);
+      }
+    };
+
+    setInterval(updateStatus, updateInterval);
+    this.logger.log(`Auto-update iniciado para mensagem ${message.id} a cada ${updateInterval/1000} segundos`);
   }
 } 
