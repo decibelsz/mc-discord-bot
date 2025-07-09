@@ -97,7 +97,7 @@ export class WhitelistPanel {
     if (serverStatus.online) {
       statusButton = new ButtonBuilder()
         .setStyle(ButtonStyle.Success)
-        .setLabel(`(${serverStatus.players}/${serverStatus.maxPlayers} jogadores)`)
+        .setLabel(`players online: ${serverStatus.players}/${serverStatus.maxPlayers}`)
         .setCustomId("server-status-button")
         .setDisabled(true);
     } else {
