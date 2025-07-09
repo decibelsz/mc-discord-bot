@@ -108,12 +108,14 @@ export class WhitelistPanel {
         .setDisabled(true);
     }
 
+    const serverVersion = process.env.SERVER_VERSION || 'Desconhecida';
+
     const components = [
       new ContainerBuilder()
         .setAccentColor(16711680)
         .addTextDisplayComponents(
           new TextDisplayBuilder()
-            .setContent("**-# VERSÃO 1.21.7**"),
+            .setContent(`**-# VERSÃO ${serverVersion}**`),
         )
         .addSeparatorComponents(
           new SeparatorBuilder()
