@@ -176,7 +176,7 @@ src/
 4. Informações completas do solicitante
 
 ### **3. Execução Automática**
-1. **Aprovar**: Executa `whitelist add <nickname>` via RCON
+1. **Aprovar**: Executa `whitelist add [nickname]` via RCON
 2. **Negar**: Fecha o canal imediatamente
 3. Logs detalhados de todas as operações
 4. Canal é fechado automaticamente

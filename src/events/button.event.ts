@@ -27,6 +27,8 @@ export class ButtonEvent {
     password: process.env.RCON_PASSWORD || 'SUA_SENHA_RCON'
   };
 
+
+
   @On('interactionCreate')
   public async onButtonInteraction(@Context() [interaction]: ContextOf<'interactionCreate'>) {
     if (interaction.isButton()) {
@@ -72,6 +74,161 @@ export class ButtonEvent {
       await interaction.showModal(modal);
       
       this.logger.debug(`📝 ${interaction.user.username} abriu o modal de whitelist`);
+    }
+
+    if (interaction.customId === 'comandos-panel-button') {
+      const comandosComponents = [
+        new ContainerBuilder()
+          .setAccentColor(16711680)
+          // .addSeparatorComponents(
+          //   new SeparatorBuilder()
+          //     .setSpacing(SeparatorSpacingSize.Small)
+          //     .setDivider(true),
+          // )
+          .addTextDisplayComponents(
+            new TextDisplayBuilder()
+              .setContent("**-# 🔒 COMANDOS DE PROTEÇÃO (BAUS)**"),
+          )
+          .addSeparatorComponents(
+            new SeparatorBuilder()
+              .setSpacing(SeparatorSpacingSize.Small)
+              .setDivider(true),
+          )
+          .addTextDisplayComponents(
+            new TextDisplayBuilder()
+              .setContent("-# `/cmodify [nickname]` - Adiciona ou remove permissão de outro jogador (clique no baú primeiro)"),
+          )
+          .addTextDisplayComponents(
+            new TextDisplayBuilder()
+              .setContent("-# `/cmodify -[nickname]` - Remove permissão de um jogador específico"),
+          )
+          .addTextDisplayComponents(
+            new TextDisplayBuilder()
+              .setContent("-# `/cunlock [senha]` - Abre baú protegido com senha"),
+          )
+          .addTextDisplayComponents(
+            new TextDisplayBuilder()
+              .setContent("-# `/cowner [nickname]` - Passa a propriedade do baú para outro jogador"),
+          )
+          .addTextDisplayComponents(
+            new TextDisplayBuilder()
+              .setContent("-# `/cprivate` - Protege baú só para você (clique no baú depois)"),
+          )
+          .addTextDisplayComponents(
+            new TextDisplayBuilder()
+              .setContent("-# `/cpublic` - Deixa baú aberto para todos (qualquer um pode usar)"),
+          )
+          .addTextDisplayComponents(
+            new TextDisplayBuilder()
+              .setContent("-# `/cpassword [senha]` - Protege baú com senha"),
+          )
+          .addTextDisplayComponents(
+            new TextDisplayBuilder()
+              .setContent("-# `/cremove` - Remove proteção do baú (clique no baú primeiro)"),
+          )
+          .addTextDisplayComponents(
+            new TextDisplayBuilder()
+              .setContent("-# `/cinfo` - Mostra informações da proteção (clique no baú)"),
+          )
+          .addSeparatorComponents(
+            new SeparatorBuilder()
+              .setSpacing(SeparatorSpacingSize.Small)
+              .setDivider(true),
+          )
+          .addTextDisplayComponents(
+            new TextDisplayBuilder()
+              .setContent("**-# 🏠 COMANDOS DE TELEPORTE PARA CASA**"),
+          )
+          .addSeparatorComponents(
+            new SeparatorBuilder()
+              .setSpacing(SeparatorSpacingSize.Small)
+              .setDivider(true),
+          )
+          .addTextDisplayComponents(
+            new TextDisplayBuilder()
+              .setContent("-# `/home [nome]` - Teleporta para sua casa"),
+          )
+          .addTextDisplayComponents(
+            new TextDisplayBuilder()
+              .setContent("-# `/sethome [nome]` - Marca este local como sua casa"),
+          )
+          .addTextDisplayComponents(
+            new TextDisplayBuilder()
+              .setContent("-# `/delhome [nome]` - Remove uma casa marcada"),
+          )
+          .addSeparatorComponents(
+            new SeparatorBuilder()
+              .setSpacing(SeparatorSpacingSize.Small)
+              .setDivider(true),
+          )
+          .addTextDisplayComponents(
+            new TextDisplayBuilder()
+              .setContent("**-# 🚀 COMANDOS DE TELEPORTE PARA JOGADOR**"),
+          )
+          .addSeparatorComponents(
+            new SeparatorBuilder()
+              .setSpacing(SeparatorSpacingSize.Small)
+              .setDivider(true),
+          )
+          .addTextDisplayComponents(
+            new TextDisplayBuilder()
+              .setContent("-# `/tp [nickname]` - Teleporta para onde está um jogador"),
+          )
+          .addSeparatorComponents(
+            new SeparatorBuilder()
+              .setSpacing(SeparatorSpacingSize.Small)
+              .setDivider(true),
+          )
+          .addTextDisplayComponents(
+            new TextDisplayBuilder()
+              .setContent("**-# 🛡️ COMANDOS TERRITORIO**"),
+          )
+          .addSeparatorComponents(
+            new SeparatorBuilder()
+              .setSpacing(SeparatorSpacingSize.Small)
+              .setDivider(true),
+          )
+          .addTextDisplayComponents(
+            new TextDisplayBuilder()
+              .setContent("-# `/claim` - Protege uma área do seu terreno"),
+          )
+          .addTextDisplayComponents(
+            new TextDisplayBuilder()
+              .setContent("-# `/abandonclaim` - Remove proteção de uma área"),
+          )
+          .addTextDisplayComponents(
+            new TextDisplayBuilder()
+              .setContent("-# `/trust [nickname]` - Permite que alguém construa na sua área"),
+          )
+          .addTextDisplayComponents(
+            new TextDisplayBuilder()
+              .setContent("-# `/untrust [nickname]` - Remove permissão de construir"),
+          )
+          .addTextDisplayComponents(
+            new TextDisplayBuilder()
+              .setContent("-# `/trustlist` - Mostra quem pode construir na sua área"),
+          )
+          .addTextDisplayComponents(
+            new TextDisplayBuilder()
+              .setContent("-# `/claiminfo` - Mostra informações da área protegida"),
+          )
+          .addSeparatorComponents(
+            new SeparatorBuilder()
+              .setSpacing(SeparatorSpacingSize.Small)
+              .setDivider(true),
+          )
+          .addTextDisplayComponents(
+            new TextDisplayBuilder()
+              .setContent("**-# 💡 DICA:** Use `/help` no jogo para ver mais comandos!"),
+          ),
+      ];
+
+      await interaction.reply({
+        components: comandosComponents,
+        flags: MessageFlags.Ephemeral | MessageFlags.IsComponentsV2
+      });
+
+      this.logger.debug(`📋 ${interaction.user.username} visualizou a lista de comandos`);
     }
 
     if (interaction.customId.startsWith('approve-')) {
