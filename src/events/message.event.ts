@@ -10,9 +10,5 @@ export class MessageEvent {
     if (message.author.bot) return;
 
     this.logger.debug(`📝 Mensagem de ${message.author.username}: ${message.content}`);
-
-    // if (message.content.toLowerCase() === 'oi') {
-    //   message.reply('👋 Olá! Use os comandos slash para interagir comigo!');
-    // }
   }
 } 

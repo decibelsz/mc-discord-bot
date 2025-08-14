@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Context, ContextOf, On } from 'necord';
-import { Rcon } from 'rcon-client';
 import { 
   MessageFlags, 
   ModalBuilder, 
@@ -16,18 +15,13 @@ import {
   TextDisplayBuilder,
   type MessageActionRowComponentBuilder
 } from 'discord.js';
+import { RconService } from '../services/rcon.service';
 
 @Injectable()
 export class ButtonEvent {
   private readonly logger = new Logger(ButtonEvent.name);
 
-  private readonly rconConfig = {
-    host: process.env.RCON_HOST || '168.231.89.180',
-    port: parseInt(process.env.RCON_PORT || '25575'),
-    password: process.env.RCON_PASSWORD || 'SUA_SENHA_RCON'
-  };
-
-
+  constructor(private readonly rconService: RconService) {}
 
   @On('interactionCreate')
   public async onButtonInteraction(@Context() [interaction]: ContextOf<'interactionCreate'>) {
@@ -42,67 +36,11 @@ export class ButtonEvent {
     }
   }
 
-  private async checkServerStatus(): Promise<{ online: boolean; players?: number; maxPlayers?: number }> {
-    try {
-      const rcon = new Rcon({
-        host: this.rconConfig.host,
-        port: this.rconConfig.port,
-        password: this.rconConfig.password
-      });
-      
-      await rcon.connect();
-      const listResult = await rcon.send('list');
-      await rcon.end();
-      
-      this.logger.debug(`Resultado do comando list: "${listResult}"`);
-      
-      let players = 0;
-      let maxPlayers = 0;
-      
-      let match = listResult.match(/(\d+)\/(\d+)/);
-      if (match) {
-        players = parseInt(match[1]);
-        maxPlayers = parseInt(match[2]);
-      } else {
-        match = listResult.match(/(\d+)\/(\d+)\s*players?/i);
-        if (match) {
-          players = parseInt(match[1]);
-          maxPlayers = parseInt(match[2]);
-        } else {
-          match = listResult.match(/(\d+)\/(\d+)/);
-          if (match) {
-            players = parseInt(match[1]);
-            maxPlayers = parseInt(match[2]);
-          }
-        }
-      }
-      
-      if (players > 0 || maxPlayers > 0) {
-        this.logger.debug(`Jogadores detectados: ${players}/${maxPlayers}`);
-        return { online: true, players, maxPlayers };
-      }
-      
-      if (listResult.toLowerCase().includes('players online') || listResult.includes(':')) {
-        const playerNames = listResult.split(':')[1]?.trim();
-        if (playerNames && playerNames !== '') {
-          const playerCount = playerNames.split(',').length;
-          this.logger.debug(`Jogadores estimados por nomes: ${playerCount}`);
-          return { online: true, players: playerCount, maxPlayers: 20 };
-        }
-      }
-      
-      this.logger.debug(`Servidor online, mas não foi possível detectar jogadores`);
-      return { online: true, players: 0, maxPlayers: 20 };
-    } catch (error) {
-      this.logger.debug(`Servidor offline: ${error.message}`);
-      return { online: false };
-    }
-  }
-
   private async handleButtonInteraction(interaction: any) {
     if (interaction.customId === '9cffd086283f4151a968f96d236175ad') {
+      const config = this.rconService.getConfig();
       await interaction.reply({
-        content: process.env.RCON_HOST || '168.231.89.180',
+        content: config.host,
         flags: MessageFlags.Ephemeral
       });
 
@@ -133,17 +71,10 @@ export class ButtonEvent {
       this.logger.debug(`📝 ${interaction.user.username} abriu o modal de whitelist`);
     }
 
-
-
     if (interaction.customId === 'comandos-panel-button') {
       const comandosComponents = [
         new ContainerBuilder()
           .setAccentColor(16711680)
-          // .addSeparatorComponents(
-          //   new SeparatorBuilder()
-          //     .setSpacing(SeparatorSpacingSize.Small)
-          //     .setDivider(true),
-          // )
           .addTextDisplayComponents(
             new TextDisplayBuilder()
               .setContent("**-# 🔒 COMANDOS DE PROTEÇÃO (BAUS)**"),
@@ -305,18 +236,8 @@ export class ButtonEvent {
       const nickname = channel.name;
       
       try {
-        const rcon = new Rcon({
-          host: this.rconConfig.host,
-          port: this.rconConfig.port,
-          password: this.rconConfig.password
-        });
-        
-        await rcon.connect();
-        
         const command = `whitelist add ${nickname}`;
-        const result = await rcon.send(command);
-        
-        await rcon.end();
+        const result = await this.rconService.executeCommand(command);
         
         await interaction.reply({
           content: `✅ **Whitelist Aprovada!**\n\n🎮 **Nickname:** \`${nickname}\`\n🔧 **Comando executado:** \`${command}\`\n📋 **Resultado:** \`${result}\`\n\n✨ O jogador foi adicionado à whitelist do servidor!`,
@@ -427,15 +348,7 @@ export class ButtonEvent {
         let skipWhitelistCheck = false;
         
         try {
-          const rcon = new Rcon({
-            host: this.rconConfig.host,
-            port: this.rconConfig.port,
-            password: this.rconConfig.password
-          });
-          
-          await rcon.connect();
-          const whitelistResult = await rcon.send('whitelist list');
-          await rcon.end();
+          const whitelistResult = await this.rconService.executeCommand('whitelist list');
           
           if (whitelistResult.toLowerCase().includes(nickname.toLowerCase())) {
             const alreadyWhitelistedComponents = [
